@@ -1,0 +1,36 @@
+description: Avago ADBS-A320 Optical Finger Navigation (OFN) sensor
+
+compatible: "avago,adbs-a320"
+
+include: [i2c-device.yaml]
+
+properties:
+  rst-gpios:
+    type: phandle-array
+    required: false
+    description: Reset GPIO pin (active low)
+  motion-gpios:
+    type: phandle-array
+    required: false
+    description: Motion interrupt GPIO pin (active low)
+  led-gpios:
+    type: phandle-array
+    required: false
+    description: Backlight LED GPIO pin
+  btn-gpios:
+    type: phandle-array
+    required: false
+    description: Dome switch read pin (Dome B, with pull-up)
+  btn-drive-gpios:
+    type: phandle-array
+    required: false
+    description: Dome switch drive pin (Dome A, driven low)
+  swap-xy:
+    type: boolean
+    description: Swap X and Y axes
+  invert-x:
+    type: boolean
+    description: Invert X axis
+  invert-y:
+    type: boolean
+    description: Invert Y axis

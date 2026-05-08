@@ -1,0 +1,16 @@
+config ADBS_A320
+    bool "Avago ADBS-A320 OFN trackpad sensor"
+    default y
+    depends on I2C
+    depends on GPIO
+    select INPUT
+    help
+      Enable driver for the Avago ADBS-A320 optical finger navigation sensor,
+      commonly found in BlackBerry trackpads.
+
+config ADBS_A320_POLL_INTERVAL_MS
+    int "Polling interval in milliseconds"
+    default 10
+    depends on ADBS_A320
+    help
+      How often to poll the sensor for motion data.
