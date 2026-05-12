@@ -3,7 +3,7 @@ config ADBS_A320
     default y
     depends on I2C
     depends on GPIO
-    select INPUT
+    depends on INPUT
     help
       Enable driver for the Avago ADBS-A320 optical finger navigation sensor,
       commonly found in BlackBerry trackpads.
