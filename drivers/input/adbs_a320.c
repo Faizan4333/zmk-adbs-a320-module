@@ -13,6 +13,7 @@
 #include <zephyr/input/input.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
+#include <zephyr/pm/device.h>
 
 LOG_MODULE_REGISTER(adbs_a320, CONFIG_INPUT_LOG_LEVEL);
 
@@ -174,6 +175,39 @@ static int adbs_a320_init(const struct device *dev)
     return 0;
 }
 
+/* PM suspend/resume: stop or restart the polling timer */
+static int adbs_a320_pm_action(const struct device *dev,
+                               enum pm_device_action action)
+{
+    struct adbs_a320_data *data = dev->data;
+    const struct adbs_a320_config *cfg = dev->config;
+
+    switch (action) {
+    case PM_DEVICE_ACTION_SUSPEND:
+        k_timer_stop(&data->poll_timer);
+        /* Turn off optical LED to save power */
+        if (cfg->led_gpio.port != NULL) {
+            gpio_pin_set_dt(&cfg->led_gpio, 0);
+        }
+        LOG_INF("ADBS-A320 suspended");
+        return 0;
+
+    case PM_DEVICE_ACTION_RESUME:
+        /* Turn optical LED back on */
+        if (cfg->led_gpio.port != NULL) {
+            gpio_pin_set_dt(&cfg->led_gpio, 1);
+        }
+        k_timer_start(&data->poll_timer,
+                      K_MSEC(CONFIG_ADBS_A320_POLL_INTERVAL_MS),
+                      K_MSEC(CONFIG_ADBS_A320_POLL_INTERVAL_MS));
+        LOG_INF("ADBS-A320 resumed");
+        return 0;
+
+    default:
+        return -ENOTSUP;
+    }
+}
+
 /* Instantiation macro for each device tree instance */
 #define ADBS_A320_INST(n)                                                       \
     static struct adbs_a320_data adbs_a320_data_##n;                            \
@@ -188,7 +222,8 @@ static int adbs_a320_init(const struct device *dev)
         .invert_x = DT_INST_PROP(n, invert_x),                                 \
         .invert_y = DT_INST_PROP(n, invert_y),                                 \
     };                                                                          \
-    DEVICE_DT_INST_DEFINE(n, adbs_a320_init, NULL,                              \
+    PM_DEVICE_DT_INST_DEFINE(n, adbs_a320_pm_action);                          \
+    DEVICE_DT_INST_DEFINE(n, adbs_a320_init, PM_DEVICE_DT_INST_GET(n),         \
                           &adbs_a320_data_##n, &adbs_a320_config_##n,           \
                           POST_KERNEL, CONFIG_INPUT_INIT_PRIORITY, NULL);
 
