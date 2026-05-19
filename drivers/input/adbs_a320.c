@@ -176,21 +176,28 @@ static int adbs_a320_init(const struct device *dev)
 }
 
 /*
- * PM suspend/resume: only stop/start the polling timer.
- * Do NOT touch the LED GPIO — hardware wiring handles it.
+ * PM suspend/resume: stop/start the polling timer, and
+ * turn the optical LED on/off to save power.
  */
 static int adbs_a320_pm_action(const struct device *dev,
                                enum pm_device_action action)
 {
     struct adbs_a320_data *data = dev->data;
+    const struct adbs_a320_config *cfg = dev->config;
 
     switch (action) {
     case PM_DEVICE_ACTION_SUSPEND:
         k_timer_stop(&data->poll_timer);
+        if (cfg->led_gpio.port != NULL) {
+            gpio_pin_set_dt(&cfg->led_gpio, 0); // 0 = Inactive
+        }
         LOG_INF("ADBS-A320 suspended");
         return 0;
 
     case PM_DEVICE_ACTION_RESUME:
+        if (cfg->led_gpio.port != NULL) {
+            gpio_pin_set_dt(&cfg->led_gpio, 1); // 1 = Active
+        }
         k_timer_start(&data->poll_timer,
                       K_MSEC(CONFIG_ADBS_A320_POLL_INTERVAL_MS),
                       K_MSEC(CONFIG_ADBS_A320_POLL_INTERVAL_MS));
