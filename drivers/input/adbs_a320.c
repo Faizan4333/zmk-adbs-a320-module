@@ -189,7 +189,7 @@ static int adbs_a320_pm_action(const struct device *dev,
     case PM_DEVICE_ACTION_SUSPEND:
         k_timer_stop(&data->poll_timer);
         if (cfg->led_gpio.port != NULL) {
-            gpio_pin_set_dt(&cfg->led_gpio, 1); // 0 = Inactive
+            gpio_pin_set_dt(&cfg->led_gpio, 0); // 0 = Inactive
         }
         LOG_INF("ADBS-A320 suspended");
         return 0;
