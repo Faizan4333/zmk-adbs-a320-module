@@ -191,10 +191,17 @@ static int adbs_a320_pm_action(const struct device *dev,
         if (cfg->led_gpio.port != NULL) {
             gpio_pin_set_dt(&cfg->led_gpio, 1); // 0 = Inactive
         }
+        if (cfg->rst_gpio.port != NULL) {
+            gpio_pin_set_dt(&cfg->rst_gpio, 1); /* Assert reset (active low pin goes LOW) to power off */
+        }
         LOG_INF("ADBS-A320 suspended");
         return 0;
 
     case PM_DEVICE_ACTION_RESUME:
+        if (cfg->rst_gpio.port != NULL) {
+            gpio_pin_set_dt(&cfg->rst_gpio, 0); /* Deassert reset */
+            k_msleep(50); /* Wait for boot */
+        }
         if (cfg->led_gpio.port != NULL) {
             gpio_pin_set_dt(&cfg->led_gpio, 1); // 1 = Active
         }
